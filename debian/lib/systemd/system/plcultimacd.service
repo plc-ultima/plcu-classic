@@ -1,0 +1,72 @@
+[Unit]
+Description=PLC Ultima Classic daemon
+
+# https://www.freedesktop.org/wiki/Software/systemd/NetworkTarget/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/plcultimacd -printtoconsole \
+            -pid=/run/plcultimacd/plcultimacd.pid \
+            -conf=/etc/plcultimac/plcultimac.conf \
+            -datadir=/var/lib/plcultimacd \
+            -listenonion=0
+
+# Make sure the config directory is readable by the service user
+PermissionsStartOnly=true
+ExecStartPre=/bin/chgrp -R plcultimac /etc/plcultimac
+
+# Process management
+####################
+
+Type=simple
+PIDFile=/run/plcultimacd/plcultimacd.pid
+Restart=on-failure
+TimeoutStartSec=30s
+TimeoutStopSec=60s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=plcultimacd
+
+# Directory creation and permissions
+####################################
+
+# Run as plcultimac:plcultimac
+User=plcultimac
+Group=plcultimac
+
+# /run/plcultimacd
+RuntimeDirectory=plcultimacd
+RuntimeDirectoryMode=0710
+# /etc/plcultimac
+ConfigurationDirectory=plcultimac
+ConfigurationDirectoryMode=0775
+# /var/lib/plcultimacd
+StateDirectory=plcultimacd
+StateDirectoryMode=0710
+
+
+# Hardening measures
+####################
+
+# Provide a private /tmp and /var/tmp.
+PrivateTmp=true
+# Mount /usr, /boot/ and /etc read-only for the process.
+ProtectSystem=full
+# Deny access to /home, /root and /run/user
+ProtectHome=true
+# Disallow the process and all of its children to gain
+# new privileges through execve().
+NoNewPrivileges=true
+# Use a new /dev namespace only populated with API pseudo devices
+# such as /dev/null, /dev/zero and /dev/random.
+PrivateDevices=true
+# Deny the creation of writable and executable memory mappings.
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

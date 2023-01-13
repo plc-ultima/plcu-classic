@@ -1,0 +1,10 @@
+crypto 
+cryptography 
+ecdsa 
+packaging
+parse
+pycrypto 
+pyzmq 
+scrypt 
+secp256k1
+simplejson 
